@@ -2,20 +2,28 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+const authRoutes = require('./routes/authRoutes');
+const { protect, requireRole } = require('./middleware/authMiddleware');
+const User = require('./models/User');
+
 const app = express();
 app.use(express.json());
 
-const User = require('./models/User');
+// Auth routes (register/login)
+app.use('/api/auth', authRoutes);
 
+// Health check route
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-app.get('/api/employees', async (req, res) => {
+// Protected route: only hr_manager or admin can view employee list
+app.get('/api/employees', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
   try {
     const employees = await User.aggregate([
       { $match: { role: 'employee' } },
