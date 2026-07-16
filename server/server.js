@@ -1,5 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
@@ -7,9 +10,21 @@ const { protect, requireRole } = require('./middleware/authMiddleware');
 const User = require('./models/User');
 
 const app = express();
+
+// Security middleware
+app.use(helmet());
+app.use(cors());
 app.use(express.json());
 
-// Auth routes (register/login)
+// General rate limiter: max 100 requests per 15 minutes per IP
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: 'Too many requests, please try again later.' }
+});
+app.use(limiter);
+
+// Auth routes (register/login) — login has its own stricter limiter inside authRoutes.js
 app.use('/api/auth', authRoutes);
 
 // Health check route
