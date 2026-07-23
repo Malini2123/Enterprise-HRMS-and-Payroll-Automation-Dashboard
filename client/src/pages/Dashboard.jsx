@@ -1,4 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axios';
+import DataTable from '../components/DataTable';
 
 function Dashboard() {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -9,6 +12,29 @@ function Dashboard() {
     localStorage.removeItem('user');
     navigate('/login');
   };
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['employees'],
+    queryFn: async () => {
+      const res = await api.get('/employees');
+      return res.data;
+    },
+  });
+
+  const columns = [
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    {
+      key: 'department',
+      label: 'Department',
+      render: (row) => row.departmentInfo?.name || '-',
+    },
+    {
+      key: 'manager',
+      label: 'Manager',
+      render: (row) => row.managerInfo?.name || '-',
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -26,6 +52,14 @@ function Dashboard() {
           Logout
         </button>
       </div>
+
+      <h2 className="text-lg font-semibold text-gray-700 mb-3">Employees</h2>
+      <DataTable
+        columns={columns}
+        data={data}
+        loading={isLoading}
+        error={error?.response?.data?.message || error?.message}
+      />
     </div>
   );
 }
