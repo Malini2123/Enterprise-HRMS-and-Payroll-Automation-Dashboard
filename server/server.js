@@ -125,5 +125,94 @@ app.get('/api/departments', protect, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+const Leave = require('./models/Leave');
+
+// Employee: submit a leave request
+app.post('/api/leaves', protect, async (req, res) => {
+  try {
+    const { leaveType, startDate, endDate, reason } = req.body;
+
+    const leave = await Leave.create({
+      employee: req.user.id,
+      leaveType,
+      startDate,
+      endDate,
+      reason,
+    });
+
+    res.status(201).json({ message: 'Leave request submitted', leave });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Employee: view their own leave requests
+app.get('/api/leaves/my', protect, async (req, res) => {
+  try {
+    const leaves = await Leave.find({ employee: req.user.id }).sort({ createdAt: -1 });
+    res.json(leaves);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// HR Manager: view all pending leave requests (with employee info joined)
+app.get('/api/leaves/pending', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
+  try {
+    const leaves = await Leave.aggregate([
+      { $match: { status: 'pending' } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'employee',
+          foreignField: '_id',
+          as: 'employeeInfo'
+        }
+      },
+      { $unwind: '$employeeInfo' },
+      {
+        $project: {
+          leaveType: 1,
+          startDate: 1,
+          endDate: 1,
+          reason: 1,
+          status: 1,
+          createdAt: 1,
+          'employeeInfo.name': 1,
+          'employeeInfo.email': 1,
+        }
+      },
+      { $sort: { createdAt: -1 } }
+    ]);
+    res.json(leaves);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// HR Manager: approve or reject a leave request
+app.patch('/api/leaves/:id', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
+  try {
+    const { status } = req.body; // 'approved' or 'rejected'
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const leave = await Leave.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!leave) {
+      return res.status(404).json({ message: 'Leave request not found' });
+    }
+
+    res.json({ message: `Leave ${status}`, leave });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

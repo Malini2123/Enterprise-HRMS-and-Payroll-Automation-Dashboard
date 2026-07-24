@@ -46,6 +46,19 @@ function Dashboard() {
           <p className="text-gray-600 mt-1">Role: {user?.role}</p>
         </div>
         <div className="flex gap-3">
+         <div className="flex gap-3">
+          <button
+            onClick={() => navigate('/request-leave')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+          >
+            Request Leave
+          </button>
+          <button
+            onClick={() => navigate('/leave-approvals')}
+            className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition"
+          >
+            Leave Approvals
+          </button>
           <button
             onClick={() => navigate('/onboard')}
             className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
@@ -58,6 +71,7 @@ function Dashboard() {
           >
             Logout
           </button>
+        </div>
         </div>
       </div>
 
