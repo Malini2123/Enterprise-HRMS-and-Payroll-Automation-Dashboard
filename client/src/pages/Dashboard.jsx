@@ -45,12 +45,20 @@ function Dashboard() {
           </h1>
           <p className="text-gray-600 mt-1">Role: {user?.role}</p>
         </div>
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
-        >
-          Logout
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate('/onboard')}
+            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+          >
+            + Onboard Employee
+          </button>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <h2 className="text-lg font-semibold text-gray-700 mb-3">Employees</h2>

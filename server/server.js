@@ -80,6 +80,50 @@ app.get('/api/employees', protect, requireRole('hr_manager', 'admin'), async (re
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+const bcrypt = require('bcryptjs');
+const Department = require('./models/Department');
 
+app.post('/api/employees', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
+  try {
+    const { name, email, password, department, role } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Employee with this email already exists' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newEmployee = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || 'employee',
+      department,
+    });
+
+    res.status(201).json({
+      message: 'Employee onboarded successfully',
+      employee: {
+        id: newEmployee._id,
+        name: newEmployee.name,
+        email: newEmployee.email,
+        role: newEmployee.role,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+app.get('/api/departments', protect, async (req, res) => {
+  try {
+    const departments = await Department.find();
+    res.json(departments);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
