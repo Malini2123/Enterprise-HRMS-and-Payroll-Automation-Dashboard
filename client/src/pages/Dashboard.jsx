@@ -21,6 +21,23 @@ function Dashboard() {
     },
   });
 
+  const downloadPayslip = async (payrollId) => {
+    try {
+      const response = await api.get(`/payroll/${payrollId}/payslip`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'payslip.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      alert('Failed to download payslip');
+    }
+  };
+
   const columns = [
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },
@@ -46,7 +63,6 @@ function Dashboard() {
           <p className="text-gray-600 mt-1">Role: {user?.role}</p>
         </div>
         <div className="flex gap-3">
-         <div className="flex gap-3">
           <button
             onClick={() => navigate('/request-leave')}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
@@ -72,7 +88,6 @@ function Dashboard() {
             Logout
           </button>
         </div>
-        </div>
       </div>
 
       <h2 className="text-lg font-semibold text-gray-700 mb-3">Employees</h2>
@@ -82,6 +97,15 @@ function Dashboard() {
         loading={isLoading}
         error={error?.response?.data?.message || error?.message}
       />
+
+      <div className="mt-6">
+        <button
+          onClick={() => downloadPayslip('6a56598b03c90f039d449bb8')}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
+        >
+          Download Test Payslip
+        </button>
+      </div>
     </div>
   );
 }

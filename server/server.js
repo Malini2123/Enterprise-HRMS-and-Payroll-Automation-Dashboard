@@ -214,5 +214,39 @@ app.patch('/api/leaves/:id', protect, requireRole('hr_manager', 'admin'), async 
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+const Payroll = require('./models/Payroll');
+const generatePayslipPDF = require('./utils/generatePayslip');
+
+app.get('/api/payroll/:id/payslip', protect, async (req, res) => {
+  try {
+    const payroll = await Payroll.findById(req.params.id).populate('employee', 'name email');
+
+    if (!payroll) {
+      return res.status(404).json({ message: 'Payroll record not found' });
+    }
+
+    // Employees can only download their own payslip; HR/admin can download any
+    if (
+      req.user.role === 'employee' &&
+      payroll.employee._id.toString() !== req.user.id
+    ) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    generatePayslipPDF(res, payroll, payroll.employee);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get all payroll records (HR/admin only) - so we have IDs to test with
+app.get('/api/payroll', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
+  try {
+    const payrolls = await Payroll.find().populate('employee', 'name email');
+    res.json(payrolls);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
