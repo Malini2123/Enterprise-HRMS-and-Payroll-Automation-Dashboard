@@ -5,6 +5,7 @@ import OnboardEmployee from './pages/OnboardEmployee';
 import RequestLeave from './pages/RequestLeave';
 import LeaveApprovals from './pages/LeaveApprovals';
 import ProtectedRoute from './components/ProtectedRoute';
+import MyPayslips from './pages/MyPayslips';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/request-leave" element={<ProtectedRoute><RequestLeave /></ProtectedRoute>} />
       <Route path="/leave-approvals" element={<ProtectedRoute><LeaveApprovals /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to="/login" />} />
+      <Route path="/my-payslips" element={<ProtectedRoute><MyPayslips /></ProtectedRoute>} />
     </Routes>
   );
 }

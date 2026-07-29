@@ -1,11 +1,11 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Users,
   CalendarClock,
   ClipboardCheck,
   UserPlus,
   LogOut,
+  FileText,
 } from 'lucide-react';
 
 function Layout({ children }) {
@@ -19,12 +19,19 @@ function Layout({ children }) {
     navigate('/login');
   };
 
-  const navItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { label: 'Request Leave', path: '/request-leave', icon: CalendarClock },
-    { label: 'Leave Approvals', path: '/leave-approvals', icon: ClipboardCheck },
-    { label: 'Onboard Employee', path: '/onboard', icon: UserPlus },
-  ];
+  const isManager = user?.role === 'hr_manager' || user?.role === 'admin';
+
+  const navItems = isManager
+    ? [
+        { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { label: 'Leave Approvals', path: '/leave-approvals', icon: ClipboardCheck },
+        { label: 'Onboard Employee', path: '/onboard', icon: UserPlus },
+      ]
+    : [
+        { label: 'My Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { label: 'Request Leave', path: '/request-leave', icon: CalendarClock },
+        { label: 'My Payslips', path: '/my-payslips', icon: FileText },
+      ];
 
   return (
     <div className="min-h-screen flex bg-gray-50">
@@ -67,7 +74,9 @@ function Layout({ children }) {
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-medium truncate">{user?.name}</p>
-              <p className="text-xs text-gray-400 capitalize truncate">{user?.role?.replace('_', ' ')}</p>
+              <p className="text-xs text-gray-400 capitalize truncate">
+                {user?.role?.replace('_', ' ')}
+              </p>
             </div>
           </div>
           <button

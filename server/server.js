@@ -3,11 +3,16 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const { protect, requireRole } = require('./middleware/authMiddleware');
 const User = require('./models/User');
+const Department = require('./models/Department');
+const Leave = require('./models/Leave');
+const Payroll = require('./models/Payroll');
+const generatePayslipPDF = require('./utils/generatePayslip');
 
 const app = express();
 
@@ -20,7 +25,7 @@ app.use(express.json());
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: { message: 'Too many requests, please try again later.' }
+  message: { message: 'Too many requests, please try again later.' },
 });
 app.use(limiter);
 
@@ -33,11 +38,14 @@ app.get('/health', (req, res) => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-// Protected route: only hr_manager or admin can view employee list
+// ---------------- EMPLOYEES ----------------
+
+// HR/Admin: view all employees with department + manager joined
 app.get('/api/employees', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
   try {
     const employees = await User.aggregate([
@@ -47,8 +55,8 @@ app.get('/api/employees', protect, requireRole('hr_manager', 'admin'), async (re
           from: 'departments',
           localField: 'department',
           foreignField: '_id',
-          as: 'departmentInfo'
-        }
+          as: 'departmentInfo',
+        },
       },
       { $unwind: '$departmentInfo' },
       {
@@ -56,14 +64,14 @@ app.get('/api/employees', protect, requireRole('hr_manager', 'admin'), async (re
           from: 'users',
           localField: 'departmentInfo.manager',
           foreignField: '_id',
-          as: 'managerInfo'
-        }
+          as: 'managerInfo',
+        },
       },
       {
         $unwind: {
           path: '$managerInfo',
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $project: {
@@ -71,18 +79,17 @@ app.get('/api/employees', protect, requireRole('hr_manager', 'admin'), async (re
           email: 1,
           role: 1,
           'departmentInfo.name': 1,
-          'managerInfo.name': 1
-        }
-      }
+          'managerInfo.name': 1,
+        },
+      },
     ]);
     res.json(employees);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
-const bcrypt = require('bcryptjs');
-const Department = require('./models/Department');
 
+// HR/Admin: onboard a new employee
 app.post('/api/employees', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
   try {
     const { name, email, password, department, role } = req.body;
@@ -117,6 +124,8 @@ app.post('/api/employees', protect, requireRole('hr_manager', 'admin'), async (r
   }
 });
 
+// ---------------- DEPARTMENTS ----------------
+
 app.get('/api/departments', protect, async (req, res) => {
   try {
     const departments = await Department.find();
@@ -125,7 +134,8 @@ app.get('/api/departments', protect, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
-const Leave = require('./models/Leave');
+
+// ---------------- LEAVES ----------------
 
 // Employee: submit a leave request
 app.post('/api/leaves', protect, async (req, res) => {
@@ -166,8 +176,8 @@ app.get('/api/leaves/pending', protect, requireRole('hr_manager', 'admin'), asyn
           from: 'users',
           localField: 'employee',
           foreignField: '_id',
-          as: 'employeeInfo'
-        }
+          as: 'employeeInfo',
+        },
       },
       { $unwind: '$employeeInfo' },
       {
@@ -180,9 +190,9 @@ app.get('/api/leaves/pending', protect, requireRole('hr_manager', 'admin'), asyn
           createdAt: 1,
           'employeeInfo.name': 1,
           'employeeInfo.email': 1,
-        }
+        },
       },
-      { $sort: { createdAt: -1 } }
+      { $sort: { createdAt: -1 } },
     ]);
     res.json(leaves);
   } catch (error) {
@@ -199,11 +209,7 @@ app.patch('/api/leaves/:id', protect, requireRole('hr_manager', 'admin'), async 
       return res.status(400).json({ message: 'Invalid status' });
     }
 
-    const leave = await Leave.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
+    const leave = await Leave.findByIdAndUpdate(req.params.id, { status }, { new: true });
 
     if (!leave) {
       return res.status(404).json({ message: 'Leave request not found' });
@@ -214,9 +220,30 @@ app.patch('/api/leaves/:id', protect, requireRole('hr_manager', 'admin'), async 
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
-const Payroll = require('./models/Payroll');
-const generatePayslipPDF = require('./utils/generatePayslip');
 
+// ---------------- PAYROLL ----------------
+
+// HR/Admin: get all payroll records
+app.get('/api/payroll', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
+  try {
+    const payrolls = await Payroll.find().populate('employee', 'name email');
+    res.json(payrolls);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Employee: get their own payroll records
+app.get('/api/payroll/my', protect, async (req, res) => {
+  try {
+    const records = await Payroll.find({ employee: req.user.id }).sort({ year: -1, month: -1 });
+    res.json(records);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Download a payslip PDF (employee can only download their own; HR/admin can download any)
 app.get('/api/payroll/:id/payslip', protect, async (req, res) => {
   try {
     const payroll = await Payroll.findById(req.params.id).populate('employee', 'name email');
@@ -225,7 +252,6 @@ app.get('/api/payroll/:id/payslip', protect, async (req, res) => {
       return res.status(404).json({ message: 'Payroll record not found' });
     }
 
-    // Employees can only download their own payslip; HR/admin can download any
     if (
       req.user.role === 'employee' &&
       payroll.employee._id.toString() !== req.user.id
@@ -239,14 +265,5 @@ app.get('/api/payroll/:id/payslip', protect, async (req, res) => {
   }
 });
 
-// Get all payroll records (HR/admin only) - so we have IDs to test with
-app.get('/api/payroll', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
-  try {
-    const payrolls = await Payroll.find().populate('employee', 'name email');
-    res.json(payrolls);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
