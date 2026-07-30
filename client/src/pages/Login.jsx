@@ -32,53 +32,89 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          HRMS Login
-        </h1>
-
-        {error && (
-          <div className="bg-red-100 text-red-700 text-sm p-2 rounded mb-4">
-            {error}
+    <div className="min-h-screen flex items-stretch bg-[#FAF9F7]">
+      {/* Left signature panel - angled gradient, hidden on small screens */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#6C5CE7] via-[#8B5CF6] to-[#FF6B4A]">
+        <div
+          className="absolute -right-24 top-0 h-full w-2/3 bg-[#FAF9F7]"
+          style={{ clipPath: 'polygon(35% 0, 100% 0, 100% 100%, 0% 100%)' }}
+        />
+        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
+          <div className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight">
+            HRMS
           </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <h2 className="font-['Space_Grotesk'] text-4xl font-bold leading-tight mb-4">
+              People, payroll,
+              <br />
+              and time off —
+              <br />
+              in one place.
+            </h2>
+            <p className="text-white/80 max-w-sm">
+              Manage your team, approve leave, and run payroll without the spreadsheets.
+            </p>
+          </div>
+          <p className="text-white/60 text-sm">© {new Date().getFullYear()} HRMS</p>
+        </div>
+      </div>
+
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          <div className="lg:hidden font-['Space_Grotesk'] text-2xl font-bold text-[#14132B] mb-8 text-center">
+            HRMS
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          <h1 className="font-['Space_Grotesk'] text-3xl font-bold text-[#14132B] mb-1">
+            Welcome back
+          </h1>
+          <p className="text-[#6B7280] mb-8">Log in to your account to continue.</p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
+          {error && (
+            <div className="bg-[#FFF0ED] border border-[#FF6B4A]/30 text-[#C0442B] text-sm px-4 py-3 rounded-xl mb-6">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-[#14132B] mb-1.5">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="you@company.com"
+                className="w-full border border-[#E5E3F1] bg-white rounded-xl px-4 py-2.5 text-[#14132B] placeholder:text-[#B0AEC2] focus:outline-none focus:ring-2 focus:ring-[#6C5CE7] focus:border-transparent transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#14132B] mb-1.5">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full border border-[#E5E3F1] bg-white rounded-xl px-4 py-2.5 text-[#14132B] placeholder:text-[#B0AEC2] focus:outline-none focus:ring-2 focus:ring-[#6C5CE7] focus:border-transparent transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#6C5CE7] text-white font-medium py-2.5 rounded-xl hover:bg-[#5B4BD6] active:scale-[0.98] transition disabled:opacity-50 disabled:active:scale-100 shadow-lg shadow-[#6C5CE7]/25"
+            >
+              {loading ? 'Logging in…' : 'Log in'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -13,6 +13,36 @@ function Dashboard() {
   return <EmployeeDashboard user={user} />;
 }
 
+function WelcomeHeader({ name, subtitle }) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#6C5CE7] via-[#8B5CF6] to-[#FF6B4A] px-8 py-7 mb-8 shadow-lg shadow-[#6C5CE7]/20">
+      <div
+        className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute right-16 bottom-0 h-24 w-24 rounded-full bg-white/10"
+        aria-hidden="true"
+      />
+      <div className="relative z-10">
+        <h1 className="font-['Space_Grotesk'] text-2xl font-bold text-white">
+          Welcome back, {name}
+        </h1>
+        <p className="text-white/80 mt-1">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <h2 className="font-['Space_Grotesk'] text-lg font-semibold text-[#14132B] mb-3 flex items-center gap-2">
+      <span className="h-4 w-1 rounded-full bg-[#6C5CE7]" />
+      {children}
+    </h2>
+  );
+}
+
 function ManagerDashboard({ user }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['employees'],
@@ -31,11 +61,8 @@ function ManagerDashboard({ user }) {
 
   return (
     <Layout>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name}</h1>
-        <p className="text-gray-500 mt-1">HR Manager Dashboard</p>
-      </div>
-      <h2 className="text-lg font-semibold text-gray-800 mb-3">Employees</h2>
+      <WelcomeHeader name={user?.name} subtitle="HR Manager Dashboard" />
+      <SectionLabel>Employees</SectionLabel>
       <DataTable
         columns={columns}
         data={data}
@@ -64,12 +91,12 @@ function EmployeeDashboard({ user }) {
       label: 'Status',
       render: (row) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
+          className={`px-2.5 py-1 rounded-full text-xs font-medium ${
             row.status === 'approved'
-              ? 'bg-green-100 text-green-700'
+              ? 'bg-[#E6FBF5] text-[#00966F]'
               : row.status === 'rejected'
-              ? 'bg-red-100 text-red-700'
-              : 'bg-yellow-100 text-yellow-700'
+              ? 'bg-[#FFF0ED] text-[#C0442B]'
+              : 'bg-[#FFF7E0] text-[#B8860B]'
           }`}
         >
           {row.status}
@@ -80,11 +107,8 @@ function EmployeeDashboard({ user }) {
 
   return (
     <Layout>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name}</h1>
-        <p className="text-gray-500 mt-1">Employee Dashboard</p>
-      </div>
-      <h2 className="text-lg font-semibold text-gray-800 mb-3">My Leave Requests</h2>
+      <WelcomeHeader name={user?.name} subtitle="Employee Dashboard" />
+      <SectionLabel>My Leave Requests</SectionLabel>
       <DataTable
         columns={columns}
         data={leaves}

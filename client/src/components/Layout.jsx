@@ -34,15 +34,17 @@ function Layout({ children }) {
       ];
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-[#FAF9F7]">
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 text-white flex flex-col fixed h-full">
+      <aside className="w-64 bg-[#14132B] text-white flex flex-col fixed h-full">
         <div className="px-6 py-6 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-sm">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6C5CE7] to-[#FF6B4A] flex items-center justify-center font-bold text-sm">
               H
             </div>
-            <span className="font-semibold text-lg tracking-tight">HRMS</span>
+            <span className="font-['Space_Grotesk'] font-bold text-lg tracking-tight">
+              HRMS
+            </span>
           </div>
         </div>
 
@@ -54,12 +56,15 @@ function Layout({ children }) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all relative ${
                   isActive
-                    ? 'bg-white/10 text-white shadow-inner'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/50 hover:bg-white/5 hover:text-white'
                 }`}
               >
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-[#FF6B4A]" />
+                )}
                 <Icon size={18} />
                 {item.label}
               </button>
@@ -69,19 +74,19 @@ function Layout({ children }) {
 
         <div className="px-3 py-4 border-t border-white/10">
           <div className="flex items-center gap-3 px-3 py-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6C5CE7] to-[#FF6B4A] flex items-center justify-center text-xs font-bold">
               {user?.name?.charAt(0) || 'U'}
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-medium truncate">{user?.name}</p>
-              <p className="text-xs text-gray-400 capitalize truncate">
+              <p className="text-xs text-white/50 capitalize truncate">
                 {user?.role?.replace('_', ' ')}
               </p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/50 hover:bg-[#FF6B4A]/10 hover:text-[#FF6B4A] transition-all"
           >
             <LogOut size={18} />
             Logout
