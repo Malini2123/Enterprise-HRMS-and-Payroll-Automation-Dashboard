@@ -34,7 +34,7 @@ function Login() {
   return (
     <div className="min-h-screen flex items-stretch bg-[#FAF9F7]">
       {/* Left signature panel - angled gradient, hidden on small screens */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#6C5CE7] via-[#8B5CF6] to-[#FF6B4A]">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-linear-to-br from-[#6C5CE7] via-[#8B5CF6] to-[#FF6B4A]">
         <div
           className="absolute -right-24 top-0 h-full w-2/3 bg-[#FAF9F7]"
           style={{ clipPath: 'polygon(35% 0, 100% 0, 100% 100%, 0% 100%)' }}

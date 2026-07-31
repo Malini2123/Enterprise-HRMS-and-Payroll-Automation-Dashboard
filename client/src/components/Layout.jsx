@@ -39,7 +39,7 @@ function Layout({ children }) {
       <aside className="w-64 bg-[#14132B] text-white flex flex-col fixed h-full">
         <div className="px-6 py-6 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6C5CE7] to-[#FF6B4A] flex items-center justify-center font-bold text-sm">
+            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-[#6C5CE7] to-[#FF6B4A] flex items-center justify-center font-bold text-sm">
               H
             </div>
             <span className="font-['Space_Grotesk'] font-bold text-lg tracking-tight">
@@ -74,7 +74,7 @@ function Layout({ children }) {
 
         <div className="px-3 py-4 border-t border-white/10">
           <div className="flex items-center gap-3 px-3 py-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6C5CE7] to-[#FF6B4A] flex items-center justify-center text-xs font-bold">
+            <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#6C5CE7] to-[#FF6B4A] flex items-center justify-center text-xs font-bold">
               {user?.name?.charAt(0) || 'U'}
             </div>
             <div className="overflow-hidden">

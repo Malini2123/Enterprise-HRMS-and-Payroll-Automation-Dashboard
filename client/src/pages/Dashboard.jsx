@@ -15,7 +15,7 @@ function Dashboard() {
 
 function WelcomeHeader({ name, subtitle }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#6C5CE7] via-[#8B5CF6] to-[#FF6B4A] px-8 py-7 mb-8 shadow-lg shadow-[#6C5CE7]/20">
+    <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#6C5CE7] via-[#8B5CF6] to-[#FF6B4A] px-8 py-7 mb-8 shadow-lg shadow-[#6C5CE7]/20">
       <div
         className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10"
         aria-hidden="true"
