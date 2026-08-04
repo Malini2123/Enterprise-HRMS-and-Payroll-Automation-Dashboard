@@ -14,6 +14,11 @@ const Leave = require('./models/Leave');
 const Payroll = require('./models/Payroll');
 const generatePayslipPDF = require('./utils/generatePayslip');
 
+const Document = require('./models/Document');
+const documentUpload = require('./utils/documentUpload');
+const path = require('path');
+const fs = require('fs');
+
 const app = express();
 
 // Security middleware
@@ -216,6 +221,100 @@ app.patch('/api/leaves/:id', protect, requireRole('hr_manager', 'admin'), async 
     }
 
     res.json({ message: `Leave ${status}`, leave });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+// ---------------- DOCUMENTS ----------------
+
+// Employee: upload a document
+app.post('/api/documents', protect, documentUpload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const { name, category } = req.body;
+
+    const document = await Document.create({
+      employee: req.user.id,
+      name: name || req.file.originalname,
+      category: category || 'other',
+      fileName: req.file.originalname,
+      filePath: req.file.filename,
+      fileType: req.file.mimetype,
+      fileSize: req.file.size,
+      uploadedBy: req.user.id,
+    });
+
+    res.status(201).json({ message: 'Document uploaded successfully', document });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Employee: view their own documents
+app.get('/api/documents/my', protect, async (req, res) => {
+  try {
+    const documents = await Document.find({ employee: req.user.id }).sort({ createdAt: -1 });
+    res.json(documents);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// HR/Admin: view all documents (with employee info)
+app.get('/api/documents', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
+  try {
+    const documents = await Document.find()
+      .populate('employee', 'name email')
+      .sort({ createdAt: -1 });
+    res.json(documents);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Download a document (employee: own only; HR/admin: any)
+app.get('/api/documents/:id/download', protect, async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id);
+
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    if (req.user.role === 'employee' && document.employee.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const filePath = path.join(__dirname, 'uploads', 'documents', document.filePath);
+    res.download(filePath, document.fileName);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Delete a document (employee: own only; HR/admin: any)
+app.delete('/api/documents/:id', protect, async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id);
+
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    if (req.user.role === 'employee' && document.employee.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const filePath = path.join(__dirname, 'uploads', 'documents', document.filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await document.deleteOne();
+    res.json({ message: 'Document deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
