@@ -18,6 +18,8 @@ const Document = require('./models/Document');
 const documentUpload = require('./utils/documentUpload');
 const path = require('path');
 const fs = require('fs');
+const Announcement = require('./models/Announcement');
+
 
 const app = express();
 
@@ -359,6 +361,47 @@ app.get('/api/payroll/:id/payslip', protect, async (req, res) => {
     }
 
     generatePayslipPDF(res, payroll, payroll.employee);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+// ---------------- ANNOUNCEMENTS ----------------
+
+// Everyone: view all announcements (most recent first)
+app.get('/api/announcements', protect, async (req, res) => {
+  try {
+    const announcements = await Announcement.find()
+      .populate('postedBy', 'name')
+      .sort({ createdAt: -1 })
+      .limit(20);
+    res.json(announcements);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// HR/Admin: post a new announcement
+app.post('/api/announcements', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
+  try {
+    const { title, message } = req.body;
+
+    const announcement = await Announcement.create({
+      title,
+      message,
+      postedBy: req.user.id,
+    });
+
+    res.status(201).json({ message: 'Announcement posted', announcement });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// HR/Admin: delete an announcement
+app.delete('/api/announcements/:id', protect, requireRole('hr_manager', 'admin'), async (req, res) => {
+  try {
+    await Announcement.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Announcement deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
