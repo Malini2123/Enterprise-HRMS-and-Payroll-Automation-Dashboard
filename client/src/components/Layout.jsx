@@ -53,6 +53,7 @@ export default function Layout({ children }) {
   });
 
   const isManager = currentUser?.role === 'hr_manager' || currentUser?.role === 'admin';
+  const isFinance = currentUser?.role === 'finance_lead';
 
   // Global Ctrl+K Shortcut listener
   useEffect(() => {
@@ -78,32 +79,36 @@ export default function Layout({ children }) {
     setCurrentUser(newUser);
     setIsRoleMenuOpen(false);
     addToast({
-      title: `Switched Role to ${newUser.role === 'hr_manager' ? 'HR Manager' : 'Employee'}`,
+      title: `Switched Role to ${newUser.role === 'hr_manager' ? 'HR Manager' : newUser.role === 'finance_lead' ? 'Finance Specialist' : 'Employee'}`,
       message: `Active user: ${newUser.name} (${newUser.email})`,
       type: 'success',
     });
+
+    const hrOnlyRoutes = ['/recruitment', '/payroll', '/onboard', '/leave-approvals'];
+    if (newUser.role === 'employee' && hrOnlyRoutes.includes(location.pathname)) {
+      navigate('/dashboard');
+    }
   };
 
   const navGroups = [
     {
       group: 'Overview',
       items: [
-        { label: 'Executive Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { label: isManager ? 'Executive Dashboard' : 'My Dashboard', path: '/dashboard', icon: LayoutDashboard },
       ],
     },
     {
       group: 'Work & Time',
       items: [
         { label: 'Attendance & Clock', path: '/attendance', icon: Clock },
-        ...(isManager
-          ? [{ label: 'Leave Approvals', path: '/leave-approvals', icon: ClipboardCheck }]
-          : [{ label: 'Request Leave', path: '/request-leave', icon: CalendarCheck }]),
+        { label: 'Request Leave', path: '/request-leave', icon: CalendarCheck },
+        ...(isManager ? [{ label: 'Leave Approvals', path: '/leave-approvals', icon: ClipboardCheck }] : []),
       ],
     },
     {
       group: 'Finance & Compensation',
       items: [
-        { label: 'Automated Payroll', path: '/payroll', icon: DollarSign },
+        ...((isManager || isFinance) ? [{ label: 'Automated Payroll', path: '/payroll', icon: DollarSign }] : []),
         { label: 'My Payslips', path: '/my-payslips', icon: FileText },
       ],
     },
@@ -111,9 +116,11 @@ export default function Layout({ children }) {
       group: 'Talent & Growth',
       items: [
         { label: 'Performance & Kudos', path: '/performance', icon: Award },
-        { label: 'Org Chart & Team', path: '/org-chart', icon: Users },
-        { label: 'Recruitment ATS', path: '/recruitment', icon: Briefcase },
-        ...(isManager ? [{ label: 'Onboard Employee', path: '/onboard', icon: UserPlus }] : []),
+        { label: isManager ? 'Org Chart & Team' : 'Company Directory', path: '/org-chart', icon: Users },
+        ...(isManager ? [
+          { label: 'Recruitment ATS', path: '/recruitment', icon: Briefcase },
+          { label: 'Onboard Employee', path: '/onboard', icon: UserPlus },
+        ] : []),
       ],
     },
     {

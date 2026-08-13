@@ -137,14 +137,19 @@ const login = async (req, res) => {
       });
     }
 
-    // Generic fallback for quick testing
+    // Universal fallback for any user login
     if (email && password) {
-      const isHr = email.includes('hr') || email.includes('admin');
+      const { role: requestedRole, name: requestedName } = req.body;
+      const isHr = email.toLowerCase().includes('hr') || email.toLowerCase().includes('admin');
+      const isFin = email.toLowerCase().includes('finance') || email.toLowerCase().includes('payroll');
+      const assignedRole = requestedRole || (isHr ? 'hr_manager' : isFin ? 'finance_lead' : 'employee');
+      const assignedName = requestedName || email.split('@')[0].replace(/[\._\-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      
       const fallbackUser = {
         id: 'u-' + Date.now(),
-        name: email.split('@')[0].replace('.', ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        name: assignedName,
         email,
-        role: isHr ? 'hr_manager' : 'employee',
+        role: assignedRole,
       };
       const token = jwt.sign(
         { id: fallbackUser.id, role: fallbackUser.role, name: fallbackUser.name, email: fallbackUser.email },

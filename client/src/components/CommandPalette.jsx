@@ -25,28 +25,45 @@ export default function CommandPalette({ isOpen, onClose }) {
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  const commands = [
+  let userRole = 'employee';
+  try {
+    const raw = localStorage.getItem('user');
+    const u = raw ? JSON.parse(raw) : null;
+    userRole = u?.role || 'employee';
+  } catch {
+    userRole = 'employee';
+  }
+  const isManager = userRole === 'hr_manager' || userRole === 'admin';
+  const isFinance = userRole === 'finance_lead';
+
+  const allCommands = [
     // Navigation
-    { id: 'nav-dash', title: 'Executive Dashboard', subtitle: 'View KPIs & analytics', category: 'Navigation', icon: LayoutDashboard, path: '/dashboard' },
-    { id: 'nav-att', title: 'Attendance & Clock-In', subtitle: 'Punch in/out & attendance calendar', category: 'Navigation', icon: Clock, path: '/attendance' },
-    { id: 'nav-pay', title: 'Payroll & Tax Automation', subtitle: 'Process runs, payslips & tax simulator', category: 'Navigation', icon: DollarSign, path: '/payroll' },
-    { id: 'nav-okr', title: 'Performance OKRs & Kudos Wall', subtitle: 'Quarterly goals and peer recognition', category: 'Navigation', icon: Award, path: '/performance' },
-    { id: 'nav-org', title: 'Org Chart & Employee Directory', subtitle: 'Visual hierarchy and team directory', category: 'Navigation', icon: Users, path: '/org-chart' },
-    { id: 'nav-ats', title: 'Recruitment & ATS Pipeline', subtitle: 'Job openings and candidate Kanban', category: 'Navigation', icon: Briefcase, path: '/recruitment' },
-    { id: 'nav-tck', title: 'Enterprise Helpdesk & Support', subtitle: 'Submit & track internal IT/HR tickets', category: 'Navigation', icon: HelpCircle, path: '/helpdesk' },
-    { id: 'nav-ast', title: 'Asset & Hardware Manager', subtitle: 'Laptops, monitors & serial tracking', category: 'Navigation', icon: HardDrive, path: '/assets' },
-    { id: 'nav-doc', title: 'Document Vault & Compliance', subtitle: 'W-4s, NDAs, insurance & contracts', category: 'Navigation', icon: FolderOpen, path: '/documents' },
-    { id: 'nav-pol', title: 'Company Policies & Handbook', subtitle: 'Leave rules, benefits & guidelines', category: 'Navigation', icon: BookOpen, path: '/policies' },
-    { id: 'nav-req-leave', title: 'Request Leave', subtitle: 'Apply for PTO, sick or casual time off', category: 'Navigation', icon: CalendarCheck, path: '/request-leave' },
-    { id: 'nav-onb', title: 'Onboard New Employee', subtitle: 'Setup wizard for incoming hires', category: 'Navigation', icon: UserPlus, path: '/onboard' },
+    { id: 'nav-dash', title: isManager ? 'Executive Dashboard' : 'My Dashboard', subtitle: 'View KPIs & analytics', category: 'Navigation', icon: LayoutDashboard, path: '/dashboard', roles: ['all'] },
+    { id: 'nav-att', title: 'Attendance & Clock-In', subtitle: 'Punch in/out & attendance calendar', category: 'Navigation', icon: Clock, path: '/attendance', roles: ['all'] },
+    { id: 'nav-req-leave', title: 'Request Leave', subtitle: 'Apply for PTO, sick or casual time off', category: 'Navigation', icon: CalendarCheck, path: '/request-leave', roles: ['all'] },
+    { id: 'nav-payslips', title: 'My Payslips & Tax Slips', subtitle: 'View breakdown & download salary slips', category: 'Navigation', icon: DollarSign, path: '/my-payslips', roles: ['all'] },
+    { id: 'nav-okr', title: 'Performance OKRs & Kudos Wall', subtitle: 'Quarterly goals and peer recognition', category: 'Navigation', icon: Award, path: '/performance', roles: ['all'] },
+    { id: 'nav-org', title: isManager ? 'Org Chart & Team Directory' : 'Company Directory', subtitle: 'Visual hierarchy and team directory', category: 'Navigation', icon: Users, path: '/org-chart', roles: ['all'] },
+    { id: 'nav-doc', title: 'Document Vault & Compliance', subtitle: 'W-4s, NDAs, insurance & contracts', category: 'Navigation', icon: FolderOpen, path: '/documents', roles: ['all'] },
+    { id: 'nav-tck', title: 'Enterprise Helpdesk & Support', subtitle: 'Submit & track internal IT/HR tickets', category: 'Navigation', icon: HelpCircle, path: '/helpdesk', roles: ['all'] },
+    { id: 'nav-ast', title: 'Asset & Hardware Manager', subtitle: 'Laptops, monitors & serial tracking', category: 'Navigation', icon: HardDrive, path: '/assets', roles: ['all'] },
+    { id: 'nav-pol', title: 'Company Policies & Handbook', subtitle: 'Leave rules, benefits & guidelines', category: 'Navigation', icon: BookOpen, path: '/policies', roles: ['all'] },
+    
+    // HR & Finance Exclusive
+    { id: 'nav-pay', title: 'Payroll & Tax Automation', subtitle: 'Process batch runs, salaries & tax engine', category: 'HR Administration', icon: DollarSign, path: '/payroll', roles: ['hr_manager', 'admin', 'finance_lead'] },
+    { id: 'nav-ats', title: 'Recruitment & ATS Pipeline', subtitle: 'Job openings and candidate Kanban', category: 'HR Administration', icon: Briefcase, path: '/recruitment', roles: ['hr_manager', 'admin'] },
+    { id: 'nav-onb', title: 'Onboard New Employee', subtitle: 'Setup wizard for incoming hires', category: 'HR Administration', icon: UserPlus, path: '/onboard', roles: ['hr_manager', 'admin'] },
+    { id: 'nav-leave-app', title: 'Leave Approvals', subtitle: 'Approve or reject employee leave requests', category: 'HR Administration', icon: CalendarCheck, path: '/leave-approvals', roles: ['hr_manager', 'admin'] },
 
     // Quick Actions
-    { id: 'act-kudos', title: 'Send Peer Kudos with Confetti', subtitle: 'Celebrate a team member', category: 'Quick Action', icon: Sparkles, path: '/performance?action=kudos' },
-    { id: 'act-tax', title: 'Simulate Income Tax (Old vs New)', subtitle: 'Compare tax regime brackets', category: 'Quick Action', icon: DollarSign, path: '/payroll?tab=tax' },
-    { id: 'act-punch', title: 'Quick Clock-In / Clock-Out', subtitle: 'Register active work session', category: 'Quick Action', icon: Clock, path: '/attendance' },
+    { id: 'act-punch', title: 'Quick Clock-In / Clock-Out', subtitle: 'Register active work session', category: 'Quick Action', icon: Clock, path: '/attendance', roles: ['all'] },
+    { id: 'act-kudos', title: 'Send Peer Kudos with Confetti', subtitle: 'Celebrate a team member', category: 'Quick Action', icon: Sparkles, path: '/performance', roles: ['all'] },
+    { id: 'act-tax', title: 'Simulate Income Tax (Old vs New)', subtitle: 'Compare tax regime brackets', category: 'Quick Action', icon: DollarSign, path: '/payroll', roles: ['hr_manager', 'admin', 'finance_lead'] },
   ];
 
-  const filtered = commands.filter(
+  const visibleCommands = allCommands.filter((c) => c.roles.includes('all') || c.roles.includes(userRole) || (isManager && c.roles.includes('hr_manager')));
+
+  const filtered = visibleCommands.filter(
     (c) =>
       c.title.toLowerCase().includes(query.toLowerCase()) ||
       c.subtitle.toLowerCase().includes(query.toLowerCase()) ||

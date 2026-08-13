@@ -28,16 +28,16 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute><AttendanceTracker /></ProtectedRoute>} />
-          <Route path="/payroll" element={<ProtectedRoute><PayrollAutomation /></ProtectedRoute>} />
+          <Route path="/payroll" element={<ProtectedRoute allowedRoles={['hr_manager', 'admin', 'finance_lead']}><PayrollAutomation /></ProtectedRoute>} />
           <Route path="/performance" element={<ProtectedRoute><PerformanceOKRs /></ProtectedRoute>} />
           <Route path="/org-chart" element={<ProtectedRoute><OrgChartDirectory /></ProtectedRoute>} />
-          <Route path="/recruitment" element={<ProtectedRoute><RecruitmentATS /></ProtectedRoute>} />
+          <Route path="/recruitment" element={<ProtectedRoute allowedRoles={['hr_manager', 'admin']}><RecruitmentATS /></ProtectedRoute>} />
           <Route path="/helpdesk" element={<ProtectedRoute><HelpdeskTickets /></ProtectedRoute>} />
           <Route path="/assets" element={<ProtectedRoute><AssetManagement /></ProtectedRoute>} />
           <Route path="/policies" element={<ProtectedRoute><CompanyPolicies /></ProtectedRoute>} />
-          <Route path="/onboard" element={<ProtectedRoute><OnboardEmployee /></ProtectedRoute>} />
+          <Route path="/onboard" element={<ProtectedRoute allowedRoles={['hr_manager', 'admin']}><OnboardEmployee /></ProtectedRoute>} />
           <Route path="/request-leave" element={<ProtectedRoute><RequestLeave /></ProtectedRoute>} />
-          <Route path="/leave-approvals" element={<ProtectedRoute><LeaveApprovals /></ProtectedRoute>} />
+          <Route path="/leave-approvals" element={<ProtectedRoute allowedRoles={['hr_manager', 'admin']}><LeaveApprovals /></ProtectedRoute>} />
           <Route path="/my-payslips" element={<ProtectedRoute><MyPayslips /></ProtectedRoute>} />
           <Route path="/documents" element={<ProtectedRoute><DocumentVault /></ProtectedRoute>} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
