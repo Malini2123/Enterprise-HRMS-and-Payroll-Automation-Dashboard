@@ -55,6 +55,11 @@ export default function Layout({ children }) {
   const isManager = currentUser?.role === 'hr_manager' || currentUser?.role === 'admin';
   const isFinance = currentUser?.role === 'finance_lead';
 
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname]);
+
   // Global Ctrl+K Shortcut listener
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -101,8 +106,9 @@ export default function Layout({ children }) {
       group: 'Work & Time',
       items: [
         { label: 'Attendance & Clock', path: '/attendance', icon: Clock },
-        { label: 'Request Leave', path: '/request-leave', icon: CalendarCheck },
-        ...(isManager ? [{ label: 'Leave Approvals', path: '/leave-approvals', icon: ClipboardCheck }] : []),
+        ...(isManager
+          ? [{ label: 'Leave Approvals', path: '/leave-approvals', icon: ClipboardCheck }]
+          : [{ label: 'Request Leave', path: '/request-leave', icon: CalendarCheck }]),
       ],
     },
     {
@@ -113,23 +119,14 @@ export default function Layout({ children }) {
       ],
     },
     {
-      group: 'Talent & Growth',
+      group: 'Talent & Team',
       items: [
-        { label: 'Performance & Kudos', path: '/performance', icon: Award },
         { label: isManager ? 'Org Chart & Team' : 'Company Directory', path: '/org-chart', icon: Users },
+        { label: 'Performance & Kudos', path: '/performance', icon: Award },
         ...(isManager ? [
           { label: 'Recruitment ATS', path: '/recruitment', icon: Briefcase },
           { label: 'Onboard Employee', path: '/onboard', icon: UserPlus },
         ] : []),
-      ],
-    },
-    {
-      group: 'Operations & Service',
-      items: [
-        { label: 'Document Vault', path: '/documents', icon: FolderOpen },
-        { label: 'Helpdesk Tickets', path: '/helpdesk', icon: HelpCircle },
-        { label: 'Asset Management', path: '/assets', icon: HardDrive },
-        { label: 'Company Policies', path: '/policies', icon: BookOpen },
       ],
     },
   ];

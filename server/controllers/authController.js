@@ -4,21 +4,47 @@ const User = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'enterprise_hrms_super_secret_jwt_key_2026';
 
-// Demo fallback accounts
+// Standard Enterprise Demo User Accounts
 const DEMO_USERS = [
   {
     id: 'u-1',
     name: 'Priya Sharma',
+    email: 'hr@company.com',
+    role: 'hr_manager',
+    title: 'VP of People & Culture',
+    department: 'Human Resources',
+  },
+  {
+    id: 'u-1b',
+    name: 'Priya Sharma',
     email: 'priya.hr@company.com',
     role: 'hr_manager',
     title: 'VP of People & Culture',
+    department: 'Human Resources',
+  },
+  {
+    id: 'u-1c',
+    name: 'HR Administrator',
+    email: 'admin@company.com',
+    role: 'hr_manager',
+    title: 'Enterprise System Admin',
+    department: 'Executive Administration',
   },
   {
     id: 'u-2',
     name: 'Sarah Jenkins',
+    email: 'employee@company.com',
+    role: 'employee',
+    title: 'Senior Full Stack Engineer',
+    department: 'Engineering',
+  },
+  {
+    id: 'u-2b',
+    name: 'Sarah Jenkins',
     email: 'sarah.j@company.com',
     role: 'employee',
     title: 'Senior Full Stack Engineer',
+    department: 'Engineering',
   },
   {
     id: 'u-3',
@@ -26,13 +52,15 @@ const DEMO_USERS = [
     email: 'marcus.v@company.com',
     role: 'employee',
     title: 'Lead Systems Architect',
+    department: 'Engineering',
   },
   {
     id: 'u-5',
     name: 'David Miller',
     email: 'david.m@company.com',
-    role: 'hr_manager',
+    role: 'finance_lead',
     title: 'Senior Financial Controller',
+    department: 'Finance & Accounts',
   },
 ];
 
@@ -55,7 +83,7 @@ const register = async (req, res) => {
         email,
         password: hashedPassword,
         role: role || 'employee',
-        department,
+        department: department || 'Engineering',
       });
 
       const token = jwt.sign(
@@ -67,7 +95,7 @@ const register = async (req, res) => {
       return res.status(201).json({
         message: 'User registered successfully',
         token,
-        user: { id: user._id, name: user.name, email: user.email, role: user.role },
+        user: { id: user._id, name: user.name, email: user.email, role: user.role, department: user.department },
       });
     } catch (dbErr) {
       // Demo fallback creation
@@ -79,7 +107,7 @@ const register = async (req, res) => {
       return res.status(201).json({
         message: 'User registered successfully (Demo Mode)',
         token,
-        user: { id: 'u-' + Date.now(), name, email, role: role || 'employee' },
+        user: { id: 'u-' + Date.now(), name, email, role: role || 'employee', department: department || 'Engineering' },
       });
     }
   } catch (error) {
@@ -90,11 +118,21 @@ const register = async (req, res) => {
 // Login existing user
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email or username is required' });
+    }
 
-    // Check DB first
+    const cleanInput = (email || '').trim().toLowerCase();
+
+    // Map short usernames
+    let searchEmail = cleanInput;
+    if (cleanInput === 'hr' || cleanInput === 'admin') searchEmail = 'hr@company.com';
+    else if (cleanInput === 'employee' || cleanInput === 'emp') searchEmail = 'employee@company.com';
+
+    // 1. Check DB first
     try {
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ $or: [{ email: searchEmail }, { email: cleanInput }] });
       if (user) {
         let isMatch = false;
         if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
@@ -113,16 +151,22 @@ const login = async (req, res) => {
           return res.json({
             message: 'Login successful',
             token,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role },
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, department: user.department },
           });
         }
       }
     } catch (dbErr) {
-      // DB error, fallback to demo check
+      // DB connection fallback
     }
 
-    // Demo user match
-    const demoUser = DEMO_USERS.find((u) => u.email.toLowerCase() === (email || '').toLowerCase());
+    // 2. Demo user exact match
+    const demoUser = DEMO_USERS.find(
+      (u) =>
+        u.email.toLowerCase() === searchEmail ||
+        u.email.toLowerCase() === cleanInput ||
+        u.email.toLowerCase().startsWith(cleanInput)
+    );
+
     if (demoUser) {
       const token = jwt.sign(
         { id: demoUser.id, role: demoUser.role, name: demoUser.name, email: demoUser.email },
@@ -137,25 +181,29 @@ const login = async (req, res) => {
       });
     }
 
-    // Universal fallback for any user login
-    if (email && password) {
-      const { role: requestedRole, name: requestedName } = req.body;
-      const isHr = email.toLowerCase().includes('hr') || email.toLowerCase().includes('admin');
-      const isFin = email.toLowerCase().includes('finance') || email.toLowerCase().includes('payroll');
-      const assignedRole = requestedRole || (isHr ? 'hr_manager' : isFin ? 'finance_lead' : 'employee');
-      const assignedName = requestedName || email.split('@')[0].replace(/[\._\-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-      
+    // 3. Universal fallback for any entered credentials (Role-Based Inference)
+    if (cleanInput && password) {
+      const isHr = cleanInput.includes('hr') || cleanInput.includes('admin') || cleanInput.includes('manager');
+      const isFin = cleanInput.includes('finance') || cleanInput.includes('payroll');
+      const assignedRole = isHr ? 'hr_manager' : isFin ? 'finance_lead' : 'employee';
+      const assignedName = cleanInput.includes('@')
+        ? cleanInput.split('@')[0].replace(/[\._\-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+        : cleanInput.replace(/\b\w/g, (c) => c.toUpperCase());
+
       const fallbackUser = {
         id: 'u-' + Date.now(),
-        name: assignedName,
-        email,
+        name: isHr ? 'Priya Sharma' : assignedName,
+        email: cleanInput.includes('@') ? cleanInput : `${cleanInput}@company.com`,
         role: assignedRole,
+        department: isHr ? 'Human Resources' : isFin ? 'Finance & Accounts' : 'Engineering',
       };
+
       const token = jwt.sign(
         { id: fallbackUser.id, role: fallbackUser.role, name: fallbackUser.name, email: fallbackUser.email },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
+
       return res.json({
         message: 'Login successful',
         token,

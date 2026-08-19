@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 import confetti from 'canvas-confetti';
+import { downloadPayslipPDF } from '../utils/pdfGenerator';
 
 export default function PayrollAutomation() {
   const { addToast } = useNotification();
@@ -630,7 +631,29 @@ export default function PayrollAutomation() {
               </button>
               <button
                 onClick={() => {
-                  addToast({ title: 'Downloading Payslip PDF', message: 'Generated encrypted payroll statement.', type: 'success' });
+                  try {
+                    downloadPayslipPDF({
+                      employeeName: 'Sarah Jenkins',
+                      employeeEmail: 'sarah.j@company.com',
+                      employeeId: 'EMP-2026-084',
+                      department: 'Engineering',
+                      designation: 'Senior Full Stack Engineer',
+                      month: selectedPayslip.month || 7,
+                      year: selectedPayslip.year || 2026,
+                      basicSalary: selectedPayslip.basicSalary || 110000,
+                      hra: selectedPayslip.hra || Math.round((selectedPayslip.basicSalary || 110000) * 0.3),
+                      allowances: selectedPayslip.allowances || Math.round((selectedPayslip.basicSalary || 110000) * 0.15),
+                      deductions: selectedPayslip.deductions || 18500,
+                      tax: selectedPayslip.tax || 12000,
+                      netSalary: selectedPayslip.netSalary || 127500,
+                      paymentDate: '2026-07-31',
+                      bankRef: 'ACH-99482109',
+                    });
+                    addToast({ title: 'PDF Payslip Downloaded', message: 'Generated official encrypted payroll statement.', type: 'success' });
+                  } catch (err) {
+                    console.error('PDF error:', err);
+                    addToast({ title: 'Download Error', message: 'Could not generate PDF.', type: 'error' });
+                  }
                 }}
                 className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-500/25 cursor-pointer"
               >

@@ -40,14 +40,10 @@ export default function CommandPalette({ isOpen, onClose }) {
     // Navigation
     { id: 'nav-dash', title: isManager ? 'Executive Dashboard' : 'My Dashboard', subtitle: 'View KPIs & analytics', category: 'Navigation', icon: LayoutDashboard, path: '/dashboard', roles: ['all'] },
     { id: 'nav-att', title: 'Attendance & Clock-In', subtitle: 'Punch in/out & attendance calendar', category: 'Navigation', icon: Clock, path: '/attendance', roles: ['all'] },
-    { id: 'nav-req-leave', title: 'Request Leave', subtitle: 'Apply for PTO, sick or casual time off', category: 'Navigation', icon: CalendarCheck, path: '/request-leave', roles: ['all'] },
-    { id: 'nav-payslips', title: 'My Payslips & Tax Slips', subtitle: 'View breakdown & download salary slips', category: 'Navigation', icon: DollarSign, path: '/my-payslips', roles: ['all'] },
-    { id: 'nav-okr', title: 'Performance OKRs & Kudos Wall', subtitle: 'Quarterly goals and peer recognition', category: 'Navigation', icon: Award, path: '/performance', roles: ['all'] },
+    { id: 'nav-req-leave', title: 'Request Leave', subtitle: 'Apply for PTO, sick or casual time off', category: 'Navigation', icon: CalendarCheck, path: '/request-leave', roles: ['employee'] },
+    { id: 'nav-payslips', title: 'My Payslips & Tax Slips', subtitle: 'View breakdown & download official PDF salary slips', category: 'Navigation', icon: DollarSign, path: '/my-payslips', roles: ['all'] },
     { id: 'nav-org', title: isManager ? 'Org Chart & Team Directory' : 'Company Directory', subtitle: 'Visual hierarchy and team directory', category: 'Navigation', icon: Users, path: '/org-chart', roles: ['all'] },
-    { id: 'nav-doc', title: 'Document Vault & Compliance', subtitle: 'W-4s, NDAs, insurance & contracts', category: 'Navigation', icon: FolderOpen, path: '/documents', roles: ['all'] },
-    { id: 'nav-tck', title: 'Enterprise Helpdesk & Support', subtitle: 'Submit & track internal IT/HR tickets', category: 'Navigation', icon: HelpCircle, path: '/helpdesk', roles: ['all'] },
-    { id: 'nav-ast', title: 'Asset & Hardware Manager', subtitle: 'Laptops, monitors & serial tracking', category: 'Navigation', icon: HardDrive, path: '/assets', roles: ['all'] },
-    { id: 'nav-pol', title: 'Company Policies & Handbook', subtitle: 'Leave rules, benefits & guidelines', category: 'Navigation', icon: BookOpen, path: '/policies', roles: ['all'] },
+    { id: 'nav-okr', title: 'Performance OKRs & Kudos Wall', subtitle: 'Quarterly goals and peer recognition', category: 'Navigation', icon: Award, path: '/performance', roles: ['all'] },
     
     // HR & Finance Exclusive
     { id: 'nav-pay', title: 'Payroll & Tax Automation', subtitle: 'Process batch runs, salaries & tax engine', category: 'HR Administration', icon: DollarSign, path: '/payroll', roles: ['hr_manager', 'admin', 'finance_lead'] },
